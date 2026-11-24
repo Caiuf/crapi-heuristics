@@ -1,5 +1,5 @@
 import numpy as np
-from collections import deque
+from collections import OrderedDict, deque
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -13,7 +13,8 @@ class ZScoreVolumetricDetector:
         min_spike_delta: int = 12,
         general_hard_cap: int = 80,
         auth_hard_cap: int = 15,
-        bola_unique_uri_cap: int = 20
+        bola_unique_uri_cap: int = 20,
+        max_tracked_ips: int = 10000
     ):
         """
         window_size: Quantidade de janelas de 1 minuto no histórico por IP.
@@ -37,6 +38,21 @@ class ZScoreVolumetricDetector:
         self.history: dict[str, deque[int]] = {}
         self.realtime_timestamps: dict[str, deque[datetime]] = {}
         self.realtime_uris: dict[str, dict[str, datetime]] = {}
+
+        self.max_tracked_ips = max_tracked_ips
+        self.history: OrderedDict[str, deque[int]] = OrderedDict()
+        self.realtime_timestamps: OrderedDict[str, deque[datetime]] = OrderedDict()
+        self.realtime_uris: OrderedDict[str, dict[str, datetime]] = OrderedDict()
+
+    def _touch_ip_lru(self, ip: str) -> None:
+        if ip in self.history:
+            self.history.move_to_end(ip)
+        else:
+            if len(self.history) >= self.max_tracked_ips:
+                oldest_ip, _ = self.history.popitem(last=False)
+                self.realtime_timestamps.pop(oldest_ip, None)
+                self.realtime_uris.pop(oldest_ip, None)
+            self.history[ip] = deque(maxlen=self.window_size)
 
     def _is_sensitive_endpoint(self, endpoint: str) -> bool:
         sensitive_keywords = ("/login", "/auth", "/token", "/otp", "/password", "/signup")

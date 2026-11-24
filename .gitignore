@@ -2,6 +2,10 @@
 venv/
 env/
 
+# Ignorar todos os arquivos CSV e png
+*.csv
+*.png
+
 # Cache do Python
 __pycache__/
 *.pyc

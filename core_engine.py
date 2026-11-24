@@ -6,7 +6,7 @@ from payload_detector import PayloadAnomalyDetector
 class APIHeuristicEngine:
     def __init__(self):
         self.volumetric_engine = ZScoreVolumetricDetector(
-            window_size=10,
+            window_size=12,
             threshold=3.5,
             general_hard_cap=80,
             auth_hard_cap=15,

@@ -22,21 +22,25 @@ def evaluate_mode(df: pd.DataFrame, mode: str = "full") -> dict:
             res = engine.inspect_request(
                 ip=row["ip"],
                 current_req_count=row["req_count"],
-                payload_str="",  # Ignora payload
+                payload_str="",
                 endpoint=row["endpoint"],
                 endpoint_type="none",
                 unique_uris_count=row["unique_uris"],
-                headers=None
+                headers=None,
+                enable_volumetric=True,
+                enable_payload=False
             )
         elif mode == "payload_only":
             res = engine.inspect_request(
                 ip=row["ip"],
-                current_req_count=1,  # Volume fixo normal para isolar a camada de payload
+                current_req_count=1,
                 payload_str=row["payload"],
                 endpoint=row["endpoint"],
                 endpoint_type=row["endpoint_type"],
                 unique_uris_count=1,
-                headers=row["headers"]
+                headers=row["headers"],
+                enable_volumetric=False,
+                enable_payload=True
             )
         else:
             res = engine.inspect_request(
@@ -46,7 +50,9 @@ def evaluate_mode(df: pd.DataFrame, mode: str = "full") -> dict:
                 endpoint=row["endpoint"],
                 endpoint_type=row["endpoint_type"],
                 unique_uris_count=row["unique_uris"],
-                headers=row["headers"]
+                headers=row["headers"],
+                enable_volumetric=True,
+                enable_payload=True
             )
 
         is_blocked = 0 if res["is_allowed"] else 1
